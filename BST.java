@@ -22,7 +22,7 @@ public class BST<T>{
 	public boolean full() {
 		return false;
 	}
-	public boolean findKey(int k) {
+	public boolean findKey(int k) { //FIND
 		BSTNode<T> p = root;
 		while (p!= null) {
 			current = p;
@@ -37,13 +37,13 @@ public class BST<T>{
 			}
 		return false;
 		}
-	public boolean insert(int k, T val) {
+	public boolean insert(int k, T val) { //INSERT
 		if(root == null) {
 			current = root = new BSTNode<T>(k, val);
 			return true;
 		}
 		BSTNode<T> p = current;
-		if(findKey(k)) {
+		if(findKey(k)) { //THE KEY IS ALREADY EXIST
 			current = p ;
 			return false;
 		}
@@ -56,7 +56,7 @@ public class BST<T>{
 		current = tmp;
 		return true;
 	}
-	public boolean removeKey(int k) {
+	public boolean removeKey(int k) { //REMOVE
 		//serch for the k
 		int k1 = k;
 		BSTNode<T> p = root;
@@ -64,9 +64,13 @@ public class BST<T>{
 		while (p != null) {
 			if(k1 < p.key) {
 				q = p;
+				p = p.left;
+			}else if(k1 > p.key) {
+				q = p;
 				p = p.right;
-			}else {//found the key
-				if((p.left != null) && (p.right != null)){
+			}
+			else {//found the key
+				if(p.left != null && p.right != null){
 					BSTNode<T> min = p.right;
 					q = p;
 					while (min.left != null) {
@@ -100,7 +104,7 @@ public class BST<T>{
 		}
 		
 
-		//HELPING METHODS
+		//INORDER
 		public void inOrder() {
 			if(root == null)
 				System.out.println("empty tree");
@@ -110,10 +114,10 @@ public class BST<T>{
 		private void inOrder(BSTNode<T>p) {
 			if(p == null) return;
 			inOrder(p.left);
-			System.out.println("key"+ p.key);
-			System.out.println(" , data = "+p.data);
+			System.out.println("key"+ p.key+" , data = "+p.data);
 			inOrder(p.right);	
 			}
+		//HELPING METHODS
 		public void findRoot() {
 			current = root;
 	}
