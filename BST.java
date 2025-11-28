@@ -124,6 +124,18 @@ public class BST<T>{
 		public int curkey() {
 			return current.key;
 		}
+		
+		public T retrieve() {
+		    if (current == null)
+		        return null;
+		    return current.data;
+		}
+
+	
+		public BSTNode<T> getRoot() {
+		    return root;
+		}
+
 	
 	
 	}
