@@ -5,6 +5,9 @@ import java.util.Scanner;
 import java.util.Stack;
 
 public class main {
+
+    public static boolean VERBOSE = false;
+
     // Lists 
     private static BST<Customer> customers_list;
     private static BST<Order>    orders_list;
@@ -30,12 +33,12 @@ public class main {
     private static boolean dataLoaded = false;
     private static void ensureLoaded() {
         if (!dataLoaded) {
-            Load_all();
+            Load_all(); 
             dataLoaded = true;
         }
     }
 
-    // Actor
+    // Constructor
     public main() {
         customers_list = new BST<>();
         orders_list    = new BST<>();
@@ -48,28 +51,21 @@ public class main {
         all_Reviews    = new Reviews(reviews_list, products_list, customers_list);
     }
 
-    // Load from CSVs
+    // Load from CSVs  
     public static void Load_all() {
         all_products.loadProducts(PRODUCTS_CSV);
         all_Customers.loadCustomers(CUSTOMERS_CSV);
         all_Orders.loadOrders(ORDERS_CSV);
-        all_Reviews.load_revews(REVIEWS_CSV);
-
-        System.out.println("Files loaded from:");
-        System.out.println("  Products : " + PRODUCTS_CSV);
-        System.out.println("  Customers: " + CUSTOMERS_CSV);
-        System.out.println("  Orders   : " + ORDERS_CSV);
-        System.out.println("  Reviews  : " + REVIEWS_CSV);
-        System.out.println("-----------------------------------");
+        all_Reviews.load_revews(REVIEWS_CSV); 
     }
 
-    //Safe add wrappers (guarded by ensureLoaded)
+    //Safe add wrappers
     public static void add_Customer(Customer c) { ensureLoaded(); all_Customers.addCustomer(c); }
     public static void add_Product(Product p)   { ensureLoaded(); all_products.addProduct(p);  }
     public static void add_Order(Order o)       { ensureLoaded(); all_Orders.addOrder(o);      }
     public static void add_Review(Review r)     { ensureLoaded(); all_Reviews.addReview(r);    }
 
-    //Features
+    // Show top 3 products
     public void displayTop3Products() {
         ensureLoaded();
 
@@ -130,46 +126,7 @@ public class main {
         System.out.println("-----------------------------------");
     }
 
-
-    public static void displayAllOrders_between2dates(LocalDate d1, LocalDate d2) {
-        ensureLoaded();
-
-        if (orders_list == null || orders_list.empty()) {
-            System.out.println("No orders found.");
-            return;
-        }
-
-        System.out.println("Orders between " + d1 + " and " + d2 + ":");
-        boolean any = false;
-
-        Stack<BSTNode<Order>> stack = new Stack<>();
-        BSTNode<Order> current = orders_list.getRoot();
-
-        // Inorder traversal
-        while (current != null || !stack.isEmpty()) {
-
-            while (current != null) {
-                stack.push(current);
-                current = current.left;
-            }
-
-            current = stack.pop();
-            Order o = current.data;
-
-            LocalDate date = o.getOrderDate();
-            if (!date.isBefore(d1) && !date.isAfter(d2)) {
-                System.out.println(o.getOrderId());
-                any = true;
-            }
-
-            current = current.right;
-        }
-
-        if (!any) System.out.println("No results.");
-        System.out.println("-----------------------------------");
-    }
-
-
+    // Common high-rated products
     public static void showCommonHighRatedProducts(int customerId1, int customerId2) {
         ensureLoaded();
         System.out.println("Common Products Reviewed by Both Customers (Avg > 4):");
@@ -190,7 +147,6 @@ public class main {
 
         while (currentProduct != null || !productStack.isEmpty()) {
 
-            // Traverse left subtree
             while (currentProduct != null) {
                 productStack.push(currentProduct);
                 currentProduct = currentProduct.left;
@@ -235,6 +191,7 @@ public class main {
         if (!found) System.out.println("No common high-rated products found.");
     }
 
+    // helpers
     private static int readInt(String prompt) {
         while (true) {
             System.out.print(prompt);
@@ -302,7 +259,6 @@ public class main {
         }
     }
 
-    // Rating 
     private static int readRating(String prompt) {
         while (true) {
             int r = readInt(prompt);
@@ -311,14 +267,13 @@ public class main {
         }
     }
 
-    //Uniqueness/existence checks
-    
     private static int readNewProductId(String prompt) {
         ensureLoaded();
         while (true) {
             System.out.print(prompt);
             if (input.hasNextInt()) {
-                int id = input.nextInt(); input.nextLine();
+                int id = input.nextInt(); 
+                input.nextLine();
 
                 if (all_products != null && all_products.SearchProductById(id) != null) {
                     System.out.println("Product ID " + id + " Is exist before.");
@@ -336,13 +291,13 @@ public class main {
         }
     }
 
- 
     private static int readExistingProductId(String prompt) {
         ensureLoaded();
         while (true) {
             System.out.print(prompt);
             if (input.hasNextInt()) {
-                int id = input.nextInt(); input.nextLine();
+                int id = input.nextInt(); 
+                input.nextLine();
                 if (all_products == null || all_products.SearchProductById(id) == null) {
                     System.out.println("Product ID " + id + " Is not exist.");
                     continue;
@@ -359,14 +314,23 @@ public class main {
         ensureLoaded();
         while (true) {
             String s = readLine(prompt).trim();
-            if (s.isEmpty()) { System.out.println("Enter at least one product ID."); continue; }
+            if (s.isEmpty()) { 
+                System.out.println("Enter at least one product ID."); 
+                continue; 
+            }
             String[] parts = s.split(";");
             boolean ok = true;
             for (String part : parts) {
                 try {
                     int id = Integer.parseInt(part.trim());
-                    if (all_products == null || all_products.SearchProductById(id) == null) { ok = false; break; }
-                } catch (NumberFormatException ex) { ok = false; break; }
+                    if (all_products == null || all_products.SearchProductById(id) == null) { 
+                        ok = false; 
+                        break; 
+                    }
+                } catch (NumberFormatException ex) { 
+                    ok = false; 
+                    break; 
+                }
             }
             if (!ok) {
                 System.out.println("Try again ^-^");
@@ -376,7 +340,6 @@ public class main {
         }
     }
 
-    // Customer ID  
     private static int readUniqueCustomerId(String prompt) {
         ensureLoaded();
         while (true) {
@@ -389,7 +352,6 @@ public class main {
         }
     }
 
-    // Customer IDً
     private static int readExistingCustomerId(String prompt) {
         ensureLoaded();
         while (true) {
@@ -402,7 +364,6 @@ public class main {
         }
     }
 
-    // Order ID 
     private static int readUniqueOrderId(String prompt) {
         ensureLoaded();
         while (true) {
@@ -415,7 +376,6 @@ public class main {
         }
     }
 
-    // Review ID
     private static int readUniqueReviewId(String prompt) {
         ensureLoaded();
         while (true) {
@@ -427,14 +387,15 @@ public class main {
             return id;
         }
     }
+
     // main
     public static void main(String[] args) {
         main e1 = new main();
-        ensureLoaded();   
+        ensureLoaded(); 
         int choice;
 
         do {
-            System.out.println("1: Load all files");
+            System.out.println("1: Show loaded file paths");
             System.out.println("2: Add Product");
             System.out.println("3: Add Customer");
             System.out.println("4: Add Order");
@@ -449,13 +410,18 @@ public class main {
             choice = readInt("Enter your choice: ");
 
             switch (choice) {
-                case 1:{
-                    Load_all();
-                    dataLoaded = true;
+                case 1: {
+                    ensureLoaded();
+                    System.out.println("\nLoaded files:");
+                    System.out.println("  Products : " + PRODUCTS_CSV);
+                    System.out.println("  Customers: " + CUSTOMERS_CSV);
+                    System.out.println("  Orders   : " + ORDERS_CSV);
+                    System.out.println("  Reviews  : " + REVIEWS_CSV);
+                    System.out.println("-----------------------------------\n");
                     break;
                 }
 
-                case 2: { // Add Product
+                case 2: { 
                     int id      = readNewProductId("Enter NEW Product ID (<101 OR >150; if 101–150 it must NOT exist now): ");
                     String name = readName("Enter Product Name: ");
                     double price= readDouble("Enter Price: ");
@@ -466,18 +432,18 @@ public class main {
                     break;
                 }
 
-                case 3: { // Add Customer (name + email)
+                case 3: { 
                     int id      = readUniqueCustomerId("Enter Customer ID [new]: ");
                     String name = readName("Enter Customer Name: ");
                     String email= readLine("Enter Customer Email: ");
                     Customer c  = new Customer(id, name, email);
 
-                    add_Customer(c); // <-- هذا الآن سيضيف ويحفظ تلقائيًا في الملف
-                    System.out.println("Customer added successfully and saved to CSV.");
+                    add_Customer(c);
+                    System.out.println("Customer added successfully.");
                     break;
                 }
 
-                case 4: { // Add Order (unique, existing customer, existing product IDs)
+                case 4: { 
                     int oid      = readUniqueOrderId("Enter Order ID [new]: ");
                     int cid      = readExistingCustomerId("Enter Customer ID [existing]: ");
                     String prod  = readValidProductIds("Enter Product IDs (semicolon-separated, must exist): ");
@@ -490,11 +456,11 @@ public class main {
                     break;
                 }
 
-                case 5: { // Add Review (unique ID + existing product & customer) + FIX rating
+                case 5: { 
                     int rid     = readUniqueReviewId("Enter Review ID [new]: ");
                     int pid     = readExistingProductId("Enter Product ID [existing]: ");
                     int cid     = readExistingCustomerId("Enter Customer ID [existing]: ");
-                    int rating  = readRating("Enter Rating (1–5): "); // <<< هنا الإصلاح
+                    int rating  = readRating("Enter Rating (1–5): ");
                     String comment = readLine("Enter Comment: ");
                     Review r = new Review(rid, pid, cid, rating, comment);
                     add_Review(r);
@@ -522,12 +488,11 @@ public class main {
                     ensureLoaded();
                     System.out.println("Display all orders between 2 dates:");
 
-                    // inter dates
                     LocalDate startDate = readDateFlexible("Enter start date (e.g., 2025-2-1): ");
                     LocalDate endDate   = readDateFlexible("Enter end date   (e.g., 2025-2-9): ");
 
                     Stack<BSTNode<Order>> stack = new Stack<>();
-                    BSTNode<Order> current = all_Orders.get_Orders().getRoot(); // get BST root
+                    BSTNode<Order> current = all_Orders.get_Orders().getRoot(); 
 
                     boolean any = false;
                     System.out.println("Orders between " + startDate + " and " + endDate + ":");
@@ -567,7 +532,7 @@ public class main {
                 }
 
                 case 11:{
-                    System.out.println("Goodbye!");
+                    System.out.println("Goodbye! ^-^");
                     break;
                 }
 
