@@ -53,7 +53,6 @@ public class Order {
 
 	    public void setStatus(String status) { this.status = status; }
 
-	    // Time Complexity: O(n) بسبب تحويل قائمة productIDs إلى نص
 	    public String toString() {
 	        return "Order ID: " + orderID + "\nCustomer ID: " + customerID +
 	               "\nProduct IDs: " + productIDs.toString() + "\nTotal Price: $" + totalPrice +
