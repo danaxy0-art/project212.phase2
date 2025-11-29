@@ -27,64 +27,37 @@ public class Products {
         return products;
     }
 
-    //     SEARCH PRODUCTS
     public Product SearchProductById(int id) {
-        if (products.empty()) {
-            return null;
-        }
-
-        boolean found = products.findKey(id);
-        if (found)
-            return products.retrieve();
-        else
-            return null;
-    }
-    
-    //       ADD PRODUCT
-    public void addProduct1(Product p) {
-        if (SearchProductById(p.getProductId()) == null) {
-            products.insert(p.getProductId(), p);
-            System.out.println("Product added: " + p.getName());
-            saveAll();
-        } else {
-            System.out.println("Product with ID " + p.getProductId() + " already exists!");
-        }
+        if (products.empty()) return null;
+        return products.findKey(id) ? products.retrieve() : null;
     }
 
     public void addProduct(Product p) {
         boolean inserted = products.insert(p.getProductId(), p);
         if (inserted) {
-            System.out.println("Product added: " + p.getName());
+            if (main.VERBOSE) System.out.println("Product added: " + p.getName());
             saveAll();
-        } else {
-            System.out.println("Product with ID " + p.getProductId() + " already exists!");
         }
     }
-    
-    //      REMOVE PRODUCT
+
     public void removeProduct(int id) {
         boolean removed = products.removeKey(id);
-        if (removed) {
+        if (removed && main.VERBOSE) {
             System.out.println("Product removed: " + id);
-            saveAll();
-        } else {
-            System.out.println("Product ID not found");
         }
+        if (removed) saveAll();
     }
 
-    //     UPDATE PRODUCT
     public void updateProduct(int id, Product p) {
         Product old = SearchProductById(id);
-
         if (old == null) {
-            System.out.println("not exist to make update");
+            if (main.VERBOSE) System.out.println("Product does not exist");
         } else {
             old.UpdateProduct(p);
             saveAll();
         }
     }
 
-    //    DISPLAY OUT OF STOCK
     public void displayOutOfStock() {
         System.out.println("Out of stock products:");
         if (products.empty()) {
@@ -96,18 +69,14 @@ public class Products {
 
     private void inOrderOutOfStock(BSTNode<Product> p) {
         if (p == null) return;
-
         inOrderOutOfStock(p.left);
-
         if (p.data.getStock() == 0) {
             System.out.println("key = " + p.key);
-            System.out.println(p.data); // display product
+            System.out.println(p.data);
         }
-
         inOrderOutOfStock(p.right);
     }
 
-    //    DISPLAY ALL PRODUCTS
     public void displayAllProducts() {
         System.out.println("All Products");
         if (products.empty()) {
@@ -119,26 +88,17 @@ public class Products {
 
     private void inOrderAllProducts(BSTNode<Product> p) {
         if (p == null) return;
-
         inOrderAllProducts(p.left);
-
         System.out.println(p.data.toString());
         p.data.displayReviews();
-
         inOrderAllProducts(p.right);
     }
 
-    //     ASSIGN REVIEW
     public void assign(Review r) {
         Product p = SearchProductById(r.getProductID());
-        if (p == null) {
-            System.out.println("not exist to assign review " + r.getReviewID() + " to it");
-        } else {
-            p.addReview(r);
-        }
+        if (p != null) p.addReview(r);
     }
 
-    //   STRING TO PRODUCT
     public static Product convert_String_to_product(String Line) {
         String[] a = Line.split(",", 4);
         return new Product(
@@ -149,45 +109,36 @@ public class Products {
         );
     }
 
-    //        LOAD FILE
     public void loadProducts(String fileName) {
         try {
             filePath = fileName;
-            File f = new File(fileName);
-            Scanner read = new Scanner(f);
+            Scanner read = new Scanner(new File(fileName));
 
-            System.out.println("Reading file: " + fileName);
-
-            if (read.hasNextLine()) read.nextLine(); // skip header
+            if (read.hasNextLine()) read.nextLine();
 
             while (read.hasNextLine()) {
                 String line = read.nextLine().trim();
-
                 if (!line.isEmpty()) {
                     Product p = convert_String_to_product(line);
-                    addProduct(p);
+                    products.insert(p.getProductId(), p);
                 }
             }
-
             read.close();
-            System.out.println("File loaded successfully!\n");
+
+            if (main.VERBOSE) System.out.println("Products loaded.");
 
         } catch (Exception e) {
-            System.out.println("Error reading file: " + e.getMessage());
+            System.out.println("Error reading products: " + e.getMessage());
         }
     }
 
-    //    SAVE ALL TO CSV
     private void saveAll() {
-
         if (filePath == null || filePath.isEmpty()) return;
-
         try (PrintWriter pw = new PrintWriter(new FileWriter(filePath))) {
 
             pw.println("productId,name,price,stock");
 
             if (!products.empty()) {
-
                 Stack<BSTNode<Product>> stack = new Stack<>();
                 BSTNode<Product> current = products.getRoot();
 
@@ -202,10 +153,10 @@ public class Products {
                     Product p = current.data;
 
                     pw.println(
-                            p.getProductId() + "," +
-                                    p.getName() + "," +
-                                    p.getPrice() + "," +
-                                    p.getStock()
+                        p.getProductId() + "," +
+                        p.getName() + "," +
+                        p.getPrice() + "," +
+                        p.getStock()
                     );
 
                     current = current.right;
@@ -213,7 +164,7 @@ public class Products {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Error saving products: " + e.getMessage());
         }
     }
 }
