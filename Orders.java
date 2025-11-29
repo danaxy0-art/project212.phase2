@@ -10,19 +10,17 @@ import java.util.Stack;
 
 public class Orders {
 
-    private BST<Order> all_orders;      // BST لجميع الطلبات
-    private Customers all_Customers;    // العملاء
-    private String filePath;            // مسار ملف الحفظ
+    private BST<Order> all_orders;      
+    private Customers all_Customers;    
+    private String filePath;            
 
     static DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    // Constructor مع بيانات موجودة
     public Orders(BST<Customer> input_customers, BST<Order> ordersInput) {
         all_Customers = new Customers(input_customers);
         this.all_orders = ordersInput;
     }
 
-    // Constructor فارغ
     public Orders() {
         all_Customers = new Customers();
         all_orders = new BST<>();
@@ -36,44 +34,38 @@ public class Orders {
         return all_orders;
     }
 
-    // البحث عن الطلب حسب ID
     public Order searchOrderById(int id) {
         if (all_orders.empty()) return null;
-        boolean found = all_orders.findKey(id);
-        return found ? all_orders.retrieve() : null;
+        return all_orders.findKey(id) ? all_orders.retrieve() : null;
     }
 
-    // إزالة طلب حسب ID
     public void removeOrder(int id) {
         boolean removed = all_orders.removeKey(id);
-        if (removed)
-            System.out.println("Order removed: " + id);
-        else
-            System.out.println("Order ID not found!");
+        if (removed && main.VERBOSE) System.out.println("Order removed: " + id);
+        if (removed) saveAll();
     }
 
-    // تعيين الطلب للعميل
     public void assign(Order ord) {
         Customer p = all_Customers.searchById(ord.getCustomerId());
-        if (p == null)
-            System.out.println("Customer " + ord.getCustomerId() + " does not exist to assign the order.");
-        else
+        if (p != null) {
             p.addOrder(ord);
-    }
-
-    // إضافة طلب مع التحقق من وجوده
-    public void addOrder(Order ord) {
-        boolean inserted = all_orders.insert(ord.getOrderId(), ord);
-        if (inserted) {
-            System.out.println("Order added: " + ord.getOrderId());
-            assign(ord);
-            saveAll(); // حفظ تلقائي بعد الإضافة
-        } else {
-            System.out.println("Order with ID " + ord.getOrderId() + " already exists!");
+        } else if (main.VERBOSE) {
+            System.out.println("Customer does not exist");
         }
     }
 
-    // تحويل من CSV إلى Order
+    public void addOrder(Order ord) {
+        boolean inserted = all_orders.insert(ord.getOrderId(), ord);
+
+        if (inserted) {
+            if (main.VERBOSE) System.out.println("Order added: " + ord.getOrderId());
+            assign(ord);
+            saveAll();
+        } else if (main.VERBOSE) {
+            System.out.println("Order already exists");
+        }
+    }
+
     public static Order convert_String_to_order(String line) {
         String[] a = line.split(",", 6);
 
@@ -87,35 +79,30 @@ public class Orders {
         return new Order(orderId, customerId, prodIds, total, date, status);
     }
 
-    // تحميل الطلبات من ملف CSV
     public void loadOrders(String fileName) {
         try {
             filePath = fileName;
-            File f = new File(fileName);
-            Scanner read = new Scanner(f);
+            Scanner read = new Scanner(new File(fileName));
 
-            System.out.println("Reading file: " + fileName);
-            if (read.hasNextLine()) read.nextLine(); // تخطي الهيدر
+            if (read.hasNextLine()) read.nextLine();
 
             while (read.hasNextLine()) {
                 String line = read.nextLine().trim();
                 if (line.isEmpty()) continue;
 
                 Order ord = convert_String_to_order(line);
-
-                // إدراج في BST
                 all_orders.insert(ord.getOrderId(), ord);
             }
 
             read.close();
-            System.out.println("File loaded successfully!\n");
+
+            if (main.VERBOSE) System.out.println("Orders loaded.");
 
         } catch (Exception e) {
             System.out.println("Error loading orders: " + e.getMessage());
         }
     }
 
-    // عرض جميع الطلبات (ترتيب تصاعدي حسب المفتاح)
     public void displayAllOrders() {
         if (all_orders.empty()) {
             System.out.println("No orders found!");
@@ -123,69 +110,21 @@ public class Orders {
         }
 
         System.out.println("OrderID\tCustomerID\tProductIDs\tTotalPrice\tDate\t\tStatus");
-        System.out.println("--------------------------------------------------------------------------");
+        System.out.println("====================================================================");
 
         inOrderTraversal(all_orders.getRoot());
-
-        System.out.println("--------------------------------------------------------------------------");
     }
 
-    // Traversal inorder للعرض
     private void inOrderTraversal(BSTNode<Order> node) {
         if (node == null) return;
 
         inOrderTraversal(node.left);
 
-        Order o = node.data;
-        System.out.println(o);
+        System.out.println(node.data);
 
         inOrderTraversal(node.right);
     }
 
-    // حفظ الطلبات في CSV
-    private void saveAll() {
-        if (filePath == null || filePath.isEmpty()) return;
-
-        try (PrintWriter pw = new PrintWriter(new FileWriter(filePath))) {
-
-            pw.println("orderId,customerId,productIds,totalPrice,date,status");
-
-            if (!all_orders.empty()) {
-                Stack<BSTNode<Order>> stack = new Stack<>();
-                BSTNode<Order> current = all_orders.getRoot();
-
-                while (current != null || !stack.isEmpty()) {
-
-                    // الذهاب لليسار
-                    while (current != null) {
-                        stack.push(current);
-                        current = current.left;
-                    }
-
-                    // زيارة العقدة
-                    current = stack.pop();
-                    Order o = current.data;
-
-                    pw.println(
-                        o.getOrderId() + "," +
-                        o.getCustomerId() + "," +
-                        o.getProd_Ids() + "," +
-                        o.getTotalPrice() + "," +
-                        o.getOrderDate().toString() + "," +
-                        o.getStatus()
-                    );
-
-                    // الانتقال لليمين
-                    current = current.right;
-                }
-            }
-
-        } catch (Exception e) {
-            System.out.println("Error saving orders: " + e.getMessage());
-        }
-    }
-
-    // عرض الطلبات بين تاريخين
     public void displayAllOrders_between2dates(LocalDate d1, LocalDate d2) {
         if (all_orders.empty()) {
             System.out.println("No orders found.");
@@ -207,6 +146,7 @@ public class Orders {
             }
 
             current = stack.pop();
+
             Order o = current.data;
 
             if (!o.getOrderDate().isBefore(d1) && !o.getOrderDate().isAfter(d2)) {
@@ -218,6 +158,45 @@ public class Orders {
         }
 
         if (!any) System.out.println("No results.");
-        System.out.println("-----------------------------------");
+        System.out.println("==============================================");
+    }
+
+    private void saveAll() {
+        if (filePath == null || filePath.isEmpty()) return;
+
+        try (PrintWriter pw = new PrintWriter(new FileWriter(filePath))) {
+
+            pw.println("orderId,customerId,productIds,totalPrice,date,status");
+
+            if (!all_orders.empty()) {
+                Stack<BSTNode<Order>> stack = new Stack<>();
+                BSTNode<Order> current = all_orders.getRoot();
+
+                while (current != null || !stack.isEmpty()) {
+
+                    while (current != null) {
+                        stack.push(current);
+                        current = current.left;
+                    }
+
+                    current = stack.pop();
+                    Order o = current.data;
+
+                    pw.println(
+                        o.getOrderId() + "," +
+                        o.getCustomerId() + "," +
+                        o.getProd_Ids() + "," +
+                        o.getTotalPrice() + "," +
+                        o.getOrderDate() + "," +
+                        o.getStatus()
+                    );
+
+                    current = current.right;
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error saving orders: " + e.getMessage());
+        }
     }
 }
