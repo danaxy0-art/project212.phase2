@@ -30,51 +30,43 @@ public class Reviews {
     public BST<Review> get_all_Reviews() { return reviews; }
     public Products get_all_Products() { return all_products; }
 
-    // SEARCH 
     public Review SearchReviewById(int id) {
-        if (reviews.findKey(id))
-            return reviews.retrieve();
-        return null;
+        return reviews.findKey(id) ? reviews.retrieve() : null;
     }
 
-    // Assign to product
     public void assign_to_product(Review r) {
         Product p = all_products.SearchProductById(r.getProductID());
         if (p != null) p.addReview(r);
     }
 
-    // Assign to customer
     public void assign_to_customer(Review r) {
         Customer c = all_Customers.searchById(r.getCustomerID());
         if (c != null) c.addReview(r);
     }
 
-    // ADD 
     public void addReview(Review r) {
         boolean inserted = reviews.insert(r.getReviewID(), r);
 
         if (inserted) {
-            System.out.println("Review added: " + r.getReviewID());
+            if (main.VERBOSE) System.out.println("Review added: " + r.getReviewID());
             assign_to_product(r);
             assign_to_customer(r);
             saveAll();
         } else {
-            System.out.println("Review with ID " + r.getReviewID() + " already exists");
+            if (main.VERBOSE) System.out.println("Review already exists");
         }
     }
 
-    // UPDATE 
     public void updateReview(int id, Review p) {
         Review old = SearchReviewById(id);
-        if (old == null)
-            System.out.println("Review does not exist");
-        else {
+        if (old != null) {
             old.UpdateReview(p);
             saveAll();
+        } else if (main.VERBOSE) {
+            System.out.println("Review does not exist");
         }
     }
 
-    //DISPLAY
     public void displayAllReviews() {
         if (reviews.empty()) {
             System.out.println("No reviews available");
@@ -82,7 +74,7 @@ public class Reviews {
         }
 
         System.out.println("All Reviews:");
-        System.out.println("----------------------------------");
+        System.out.println("============================================");
 
         Stack<BSTNode<Review>> stack = new Stack<>();
         BSTNode<Review> current = reviews.getRoot();
@@ -100,10 +92,9 @@ public class Reviews {
             current = current.right;
         }
 
-        System.out.println("----------------------------------");
+        System.out.println("============================================");
     }
 
-    // FILE PARSING 
     public static Review convert_String_to_Review(String line) {
         String[] a = line.split(",", 5);
         return new Review(
@@ -115,13 +106,12 @@ public class Reviews {
         );
     }
 
-    //LOAD 
     public void load_revews(String fileName) {
         try {
             filePath = fileName;
             Scanner read = new Scanner(new File(fileName));
 
-            if (read.hasNextLine()) read.nextLine(); // skip header
+            if (read.hasNextLine()) read.nextLine();
 
             while (read.hasNextLine()) {
                 String line = read.nextLine().trim();
@@ -132,14 +122,14 @@ public class Reviews {
             }
 
             read.close();
-            System.out.println("Reviews loaded successfully");
+
+            if (main.VERBOSE) System.out.println("Reviews loaded.");
 
         } catch (Exception e) {
             System.out.println("Error reading reviews: " + e.getMessage());
         }
     }
 
-    // SAVE 
     private void saveAll() {
         if (filePath == null || filePath.isEmpty()) return;
 
