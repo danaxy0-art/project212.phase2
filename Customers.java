@@ -8,7 +8,7 @@ import java.util.Stack;
 
 public class Customers {
     private BST<Customer> customers;
-    private String filePath; // <--- أضفنا المتغير هنا
+    private String filePath;
 
     public Customers() {
         customers = new BST<>();
@@ -27,22 +27,18 @@ public class Customers {
     }
 
     public Customer searchById(int id) {
-        if (customers.empty())
-            return null;
-        boolean found = customers.findKey(id);
-        if (found)
-            return customers.retrieve();
-        else
-            return null;
+        if (customers.empty()) return null;
+        return customers.findKey(id) ? customers.retrieve() : null;
     }
 
     public void addCustomer(Customer c) {
         boolean inserted = customers.insert(c.getCustomerId(), c);
+
         if (inserted) {
-            System.out.println("Customer added: " + c.getName());
-            saveAll(); // حفظ تلقائي بعد الإضافة
+            if (main.VERBOSE) System.out.println("Customer added: " + c.getName());
+            saveAll();
         } else {
-            System.out.println("Customer ID already exists!");
+            if (main.VERBOSE) System.out.println("Customer ID already exists!");
         }
     }
 
@@ -51,9 +47,8 @@ public class Customers {
         if (customers.empty()) {
             System.out.println("No customers exist");
             return;
-        } else {
-            inOrder_all_customers(customers.getRoot());
         }
+        inOrder_all_customers(customers.getRoot());
     }
 
     private void inOrder_all_customers(BSTNode<Customer> c) {
@@ -64,30 +59,33 @@ public class Customers {
     }
 
     public static Customer convert_String_to_Customer(String Line) {
-        String a[] = Line.split(",");
-        Customer p = new Customer(Integer.parseInt(a[0].trim()), a[1].trim(), a[2].trim());
-        return p;
+        String[] a = Line.split(",");
+        return new Customer(
+                Integer.parseInt(a[0].trim()),
+                a[1].trim(),
+                a[2].trim()
+        );
     }
 
     public void loadCustomers(String fileName) {
         try {
-            setFilePath(fileName); // <-- تحديد المسار
-            File f = new File(fileName);
-            Scanner read = new Scanner(f);
-            System.out.println("Reading file: " + fileName);
-            System.out.println("-----------------------------------");
-            if (read.hasNextLine()) read.nextLine(); // skip header
+            filePath = fileName;
+            Scanner read = new Scanner(new File(fileName));
+
+            if (read.hasNextLine()) read.nextLine();
 
             while (read.hasNextLine()) {
                 String line = read.nextLine().trim();
                 if (line.isEmpty()) continue;
+
                 Customer c = convert_String_to_Customer(line);
-                addCustomer(c); // سيحفظ تلقائياً بعد الإضافة
+                customers.insert(c.getCustomerId(), c);
             }
 
             read.close();
-            System.out.println("-----------------------------------");
-            System.out.println("Customers loaded successfully!\n");
+
+            if (main.VERBOSE) System.out.println("Customers loaded.");
+
         } catch (Exception e) {
             System.out.println("Error loading customers: " + e.getMessage());
         }
@@ -95,24 +93,37 @@ public class Customers {
 
     private void saveAll() {
         if (filePath == null || filePath.isEmpty()) return;
+
         try (PrintWriter pw = new PrintWriter(new FileWriter(filePath))) {
-            pw.println("customerId,name,email"); // header
+
+            pw.println("customerId,name,email");
+
             if (!customers.empty()) {
                 Stack<BSTNode<Customer>> stack = new Stack<>();
                 BSTNode<Customer> current = customers.getRoot();
+
                 while (current != null || !stack.isEmpty()) {
+
                     while (current != null) {
                         stack.push(current);
                         current = current.left;
                     }
+
                     current = stack.pop();
                     Customer c = current.data;
-                    pw.println(c.getCustomerId() + "," + c.getName() + "," + c.getEmail());
+
+                    pw.println(
+                        c.getCustomerId() + "," +
+                        c.getName() + "," +
+                        c.getEmail()
+                    );
+
                     current = current.right;
                 }
             }
+
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Error saving customers: " + e.getMessage());
         }
     }
 }
