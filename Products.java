@@ -47,6 +47,7 @@ public class Products {
         }
         if (removed) saveAll();
     }
+    
 
     public void updateProduct(int id, Product p) {
         Product old = SearchProductById(id);
