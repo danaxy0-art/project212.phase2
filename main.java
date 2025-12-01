@@ -489,7 +489,7 @@ public class main {
         if (!found) System.out.println("No customers reviewed this product.");
     }
 
-    // ======================= MAIN MENU ==========================
+    //  MAIN MENU 
     public static void main(String[] args) {
         main e1 = new main();
         ensureLoaded(); 
@@ -507,9 +507,10 @@ public class main {
             System.out.println("8: Display all orders");
             System.out.println("9: Display all orders between 2 dates");
             System.out.println("10: Show common high-rated products for 2 customers");
-            System.out.println("11: Display products within a price range");
-            System.out.println("12: Display customers who reviewed a specific product");
-            System.out.println("13: Exit");
+            System.out.println("11: Remove product ");
+            System.out.println("12: Display products within a price range");
+            System.out.println("13: Display customers who reviewed a specific product");
+            System.out.println("14: Exit");
 
             choice = readInt("Enter your choice: ");
 
@@ -614,7 +615,6 @@ public class main {
 
                         current = stack.pop();
                         Order o1 = current.data;
-
                         if (!o1.getOrderDate().isBefore(startDate) && !o1.getOrderDate().isAfter(endDate)) {
                             System.out.println("OrderID: " + o1.getOrderId()
                                 + " | CustomerID: " + o1.getCustomerId()
@@ -631,6 +631,7 @@ public class main {
                     if (!any) System.out.println("No results.");
                     System.out.println("-----------------------------------");
                     break;
+                
                 }
                 case 10: {
                     int c1 = readExistingCustomerId("Enter first customer ID [existing]: ");
@@ -638,15 +639,27 @@ public class main {
                     showCommonHighRatedProducts(c1, c2);
                     break;
                 }
-                 case 11:{
+                case 11: { 
+                    ensureLoaded();
+                    int pid = readExistingProductId("Enter Product ID to remove: ");
+                    Product p = all_products.SearchProductById(pid);
+                    if (p != null) {
+                        all_products.removeProduct(pid);
+                        System.out.println("Product ID " + pid + " (" + p.getName() + ") removed successfully.");
+                    } else {
+                        System.out.println("Product not found.");
+                    }
+                    break;
+                }
+                 case 12:{
                     showProductsInPriceRange();
                     break;
                 }
-                case 12:{
+                case 13:{
                     showCustomersWhoReviewedProduct();
                     break;
                 }
-                case 13:{
+                case 14:{
                     System.out.println("Goodbye! ^-^");
                     break;
                 }
@@ -655,9 +668,8 @@ public class main {
                     break;
                 }
             }
-        } while (choice != 13);
+        } while (choice != 14);
 
         input.close();
     }
 }
-
