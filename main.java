@@ -61,9 +61,6 @@ public class main {
     public static void add_Order(Order o)       { ensureLoaded(); all_Orders.addOrder(o);      }
     public static void add_Review(Review r)     { ensureLoaded(); all_Reviews.addReview(r);    }
 
-    // =====================================================================
-    //  ⭐⭐  NEW FEATURE: DISPLAY CUSTOMERS ALPHABETICALLY  ⭐⭐
-    // =====================================================================
     public static int countCustomers(BSTNode<Customer> node) {
         if (node == null) return 0;
         return 1 + countCustomers(node.left) + countCustomers(node.right);
@@ -422,8 +419,6 @@ public class main {
             return id;
         }
     }
-
-    // ======================= NEW FEATURES ==========================
     private static void showProductsInPriceRange() {
         ensureLoaded();
         double minPrice = readDouble("Enter minimum price: ");
@@ -512,9 +507,9 @@ public class main {
             System.out.println("8: Display all orders");
             System.out.println("9: Display all orders between 2 dates");
             System.out.println("10: Show common high-rated products for 2 customers");
-            System.out.println("11: Exit");
-            System.out.println("12: Display products within a price range");
-            System.out.println("13: Display customers who reviewed a specific product");
+            System.out.println("11: Display products within a price range");
+            System.out.println("12: Display customers who reviewed a specific product");
+            System.out.println("13: Exit");
 
             choice = readInt("Enter your choice: ");
 
@@ -643,16 +638,16 @@ public class main {
                     showCommonHighRatedProducts(c1, c2);
                     break;
                 }
-                case 11:{
-                    System.out.println("Goodbye! ^-^");
-                    break;
-                }
-                case 12:{
+                 case 11:{
                     showProductsInPriceRange();
                     break;
                 }
-                case 13:{
+                case 12:{
                     showCustomersWhoReviewedProduct();
+                    break;
+                }
+                case 13:{
+                    System.out.println("Goodbye! ^-^");
                     break;
                 }
                 default:{
@@ -660,8 +655,9 @@ public class main {
                     break;
                 }
             }
-        } while (choice != 11);
+        } while (choice != 13);
 
         input.close();
     }
 }
+
